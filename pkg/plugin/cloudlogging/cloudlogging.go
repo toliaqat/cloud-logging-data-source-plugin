@@ -26,6 +26,8 @@ import (
 	alpb "google.golang.org/genproto/googleapis/cloud/audit"
 	ltype "google.golang.org/genproto/googleapis/logging/type"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/golang/protobuf/jsonpb"
 )
 
 // GetLogEntryMessage gets the message body of a LogEntry based on what kind of payload it is
@@ -36,7 +38,10 @@ func GetLogEntryMessage(entry *loggingpb.LogEntry) (string, error) {
 		if msg, ok := t.JsonPayload.Fields["message"]; ok {
 			return msg.GetStringValue(), nil
 		}
-		return t.JsonPayload.String(), nil
+
+		marshaler := jsonpb.Marshaler{}
+		jsonStr, _ := marshaler.MarshalToString(t.JsonPayload)
+		return jsonStr, nil
 	case *loggingpb.LogEntry_TextPayload:
 		return t.TextPayload, nil
 	case *loggingpb.LogEntry_ProtoPayload:
